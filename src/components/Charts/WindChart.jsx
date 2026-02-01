@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   LineChart,
   Line,
@@ -6,36 +7,38 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts'
-import { useIsMobile } from '../../hooks/useIsMobile'
+import DateRangeSelector from './DateRangeSelector'
+import { formatXAxis } from '../../utils/helpers'
 
 const WindChart = ({ forecast }) => {
-  const isMobile = useIsMobile()
+  const [range, setRange] = useState(8)
 
-  const data = forecast
-    .slice(0, isMobile ? 6 : 12)
-    .map(item => ({
-      time: item.dt_txt.split(' ')[1].slice(0, 5),
-      speed: item.wind.speed
-    }))
+  const data = forecast.slice(0, range).map(item => ({
+    time: item.dt_txt,
+    speed: item.wind.speed
+  }))
 
   return (
-    <div className="bg-white p-4 rounded shadow">
-      <h3 className="font-semibold mb-2">Wind Speed</h3>
+    <div className='bg-white p-4 rounded shadow'>
+      <div className='flex justify-between items-center mb-2'>
+        <h3 className='font-semibold'>Wind Speed Trend</h3>
+        <DateRangeSelector selected={range} onChange={setRange} />
+      </div>
 
-      <ResponsiveContainer width="100%" height={260}>
+      <ResponsiveContainer width='100%' height={280}>
         <LineChart data={data}>
           <XAxis
-            dataKey="time"
-            angle={isMobile ? -45 : 0}
-            textAnchor={isMobile ? 'end' : 'middle'}
-            height={isMobile ? 50 : 30}
-            interval={isMobile ? 1 : 0}
+            dataKey='time'
+            tickFormatter={value => formatXAxis(value, range)}
+            interval={range === 8 ? 0 : 3}
           />
           <YAxis />
-          <Tooltip />
+          <Tooltip
+            labelFormatter={value => new Date(value).toLocaleString()}
+          />
           <Line
-            type="monotone"
-            dataKey="speed"
+            type='monotone'
+            dataKey='speed'
             strokeWidth={2}
             dot={false}
           />
